@@ -3,3 +3,4 @@ loguru
 requests
 beautifulsoup4
 click
+billboard.py
