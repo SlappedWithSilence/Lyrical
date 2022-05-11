@@ -2,6 +2,8 @@ from api.lyrics import AZLyricRunner, SongContainer
 
 
 # Lifecycle Functions
+from src.api.billboard import BillboardRunner
+
 
 def __gather() -> None:
     pass
@@ -30,3 +32,6 @@ if __name__ == "__main__":
     result = runner.get(test_song)
 
     print(result.lyrics)
+
+    runner = BillboardRunner()
+    print(runner.get(year=2006).entries)
