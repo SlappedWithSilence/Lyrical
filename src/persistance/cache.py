@@ -1,33 +1,38 @@
 import weakref
 
-from src.api.lyrics import SongContainer
+from loguru import logger
 
-root: dict = {}
+root: list[dict] = []
 
 
 def initialize_root() -> None:
     """Set up the cache. This should only run once at the start of execution."""
+
+    logger.debug("Initializing cache")
+
     global root
 
-    root["charts"] = {}
-    root["charts"]["yearly"] = {}
-    root["fermented_tracks"] = []
-    root["lyrics"] = {}
-    root["comparisons"] = {}
+    root.append({})
+
+    get_cache()["charts"] = {}
+    get_cache()["charts"]["yearly"] = {}
+    get_cache()["fermented_tracks"] = []
+    get_cache()["lyrics"] = {}
+    get_cache()["comparisons"] = {}
+
+
+def set_cache(cache: dict) -> None:
+    global root
+    root[0] = cache
 
 
 def get_cache() -> dict:
-    """Get a weakref to the cache object.
-
-    @:returns
-        Returns a weakref proxy to the cache object. The cache object is a dict.
-    """
     global root
 
-    return weakref.proxy(root)
+    return root[0]
 
 
-def is_lyric_cached(song: SongContainer) -> [SongContainer, None]:
+def is_lyric_cached(song):
     """Get cached string containing lyrics for requesting song.
 
     @:param song
@@ -42,6 +47,7 @@ def is_lyric_cached(song: SongContainer) -> [SongContainer, None]:
 
     global root
 
+    logger.debug(str(get_cache()))
     if song.artist not in get_cache()["lyrics"]:
         return None
 
@@ -51,7 +57,7 @@ def is_lyric_cached(song: SongContainer) -> [SongContainer, None]:
     return get_cache()["lyrics"][song.artist][song.title]
 
 
-def cache_song(song: SongContainer) -> None:
+def cache_song(song) -> None:
     if not song.lyrics:
         raise ValueError("Cannot cache SongContainer when lyrics=None!")
 

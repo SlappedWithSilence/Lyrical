@@ -91,7 +91,7 @@ def get_lyrics(song) -> str:
     global last_scrape, last_scrape_lock
 
     last_scrape_lock.acquire()
-    if time.time() - last_scrape < 1.5:
+    if time.time() - last_scrape < 10:
         time.sleep(time.time() - last_scrape)
         last_scrape = time.time()
     last_scrape_lock.release()

@@ -1,13 +1,22 @@
 from multiprocessing.dummy import Pool as ThreadPool
+import pickle
+from os import path
 
 from api.lyrics import get_lyrics, SongContainer
 from api.billboard import BillboardRunner
-from persistance.cache import get_cache
+from persistance.cache import get_cache, initialize_root, set_cache
 
 
 def __setup():
     """Perform system setup functions"""
-    pass
+    if path.exists("cache.pickle"):
+        # Load
+        with open("cache", "r") as f:
+            set_cache(pickle.load(f))
+    else:
+        initialize_root()
+
+    print(get_cache())
 
 
 def __interpret():
@@ -51,6 +60,11 @@ def __compare() -> None:
 
 def __export() -> None:
     pass
+
+
+def __persist() -> None:
+    with open("cache.pickle", "wb") as f:
+        pickle.dump(get_cache(), f)
 
 
 if __name__ == "__main__":
