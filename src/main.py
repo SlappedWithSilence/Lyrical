@@ -1,43 +1,45 @@
 from multiprocessing.dummy import Pool as ThreadPool
-import pickle
 from os import path
+
+from loguru import logger
 
 from api.lyrics import get_lyrics, SongContainer
 from api.billboard import BillboardRunner
-from persistance.cache import get_cache, initialize_root, set_cache
+from persistance.cache import cache
+
+cache_path = "cache.pickle"
 
 
 def __setup():
     """Perform system setup functions"""
-    if path.exists("cache.pickle"):
-        # Load
-        with open("cache", "r") as f:
-            set_cache(pickle.load(f))
-    else:
-        initialize_root()
 
-    print(get_cache())
+    if path.exists(cache_path):
+        cache.load_cache(cache_path)
+
+    logger.debug(str(cache.get_cache()))
 
 
 def __interpret():
     """Generate a list of content to gather from user input"""
-    pass
+    logger.debug(str(cache.get_cache()))
 
 
 def __gather(years: list[int], songs: list[SongContainer]) -> None:
+    logger.debug(str(cache.get_cache()))
     """Gather requested content from third-party sources"""
     # Set up runners
     runner = BillboardRunner()
 
     # Get charts
     for year in years:
-        if year not in get_cache()["charts"]["yearly"]:
+        if year not in cache.get_cache()["charts"]["yearly"]:
             songs = runner.get(year=year)
-            get_cache()["charts"]["yearly"][year] = songs
+            cache.get_cache()["charts"]["yearly"][year] = songs
 
     # Get lyrics
     worker_pool = ThreadPool(1)
 
+    logger.debug(str(cache.get_cache()))
     for song in songs:
         get_lyrics(song)
 
@@ -63,8 +65,7 @@ def __export() -> None:
 
 
 def __persist() -> None:
-    with open("cache.pickle", "wb") as f:
-        pickle.dump(get_cache(), f)
+    cache.dump_cache(cache_path)
 
 
 if __name__ == "__main__":
