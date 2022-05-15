@@ -1,4 +1,5 @@
 import time
+from abc import ABC
 from threading import Lock
 from typing import Union
 
@@ -15,15 +16,24 @@ last_scrape_lock = Lock()
 last_scrape = time.time()
 
 
-class AZLyricRunner:
+class LyricRunner(ABC):
 
     def __init__(self):
+        self.__endpoint_url: str = None
+        self.__backup_endpoint: str = None
+        self.__fail_limit = 3
+
+    def get(self, song: SongContainer):
+        pass
+
+
+class AZLyricRunner(LyricRunner):
+
+    def __init__(self):
+        super().__init__()
         self.__endpoint_url: str = "https://www.azlyrics.com/lyrics/{}/{}.html"
         self.__backup_endpoint: str = "http://webcache.googleusercontent.com/search?q=cache:www.azlyrics.com/lyrics/{}/{" \
-                                 "}.html "
-        self.__retried: bool = False
-        self.__retry: bool = False
-
+                                      "}.html "
         self.__fail_limit = 3
 
     def get(self, song: SongContainer, use_backup: bool = False) -> Union[None, SongContainer]:
@@ -72,7 +82,7 @@ class AZLyricRunner:
             return song.set_failed(True)
 
 
-def get_lyrics(song) -> str:
+def get_lyrics(song, runner_class: type) -> str:
     global last_scrape, last_scrape_lock
 
     last_scrape_lock.acquire()
@@ -82,5 +92,5 @@ def get_lyrics(song) -> str:
     last_scrape_lock.release()
 
     if isinstance(song, billboard.ChartEntry):
-        runner = AZLyricRunner()
+        runner = runner_class()
         return runner.get(SongContainer(artist=song.artist, title=song.title)).lyrics
